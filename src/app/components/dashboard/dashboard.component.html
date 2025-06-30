@@ -1,7 +1,11 @@
-<!-- src/app/components/dashboard/dashboard.component.html -->
 <h2 class="heading">Dashboard</h2>
 
 <button class="logout-btn" (click)="logout()">Logout</button>
+<div class="section">
+  <button class="save-btn" (click)="saveFundHouses()">Get Fund Houses</button>
+  <button class="save-btn" (click)="saveSchemes()">Get Schemes</button>
+</div>
+
 
 <div class="section">
   <label>Choose Fund House:</label>
@@ -16,92 +20,45 @@
   <select [(ngModel)]="selectedSchemeId">
     <option value="">-- Select Scheme --</option>
     <option *ngFor="let scheme of schemes" [value]="scheme.id">{{ scheme.scheme_name }}</option>
-  </select>
+  </select><br>
 
-  <input [(ngModel)]="units" type="number" placeholder="Units">
+  <label>Amount to Invest:</label>
+  <input [(ngModel)]="amount" type="number" placeholder="Amount to Invest" /><br>
+  
   <button class="add-btn" (click)="addToPortfolio()">Add to Portfolio</button>
 </div>
+
 
 <div *ngIf="selectedFundHouseId && schemes.length === 0" class="section">
   <p class="no-schemes">No open-ended schemes available for this fund house.</p>
 </div>
 
-<hr>
+<hr />
 
 <h3 class="sub-heading">Your Portfolio</h3>
-<ul class="portfolio-list">
-  <li *ngFor="let p of portfolio">
-    <strong>{{ p.scheme.scheme_name }}</strong> — {{ p.units }} units | Value: ₹{{ p.current_value }}
-  </li>
-</ul>
 
-<style>
-  .heading {
-    font-size: 28px;
-    color: #2c3e50;
-    margin-bottom: 20px;
-  }
+<table class="portfolio-table" *ngIf="portfolio.length > 0">
+  <thead>
+    <tr>
+      <th>Scheme Name</th>
+      <th>Amount Invested</th>
+      <th>NAV at Purchase</th>
+      <th>Units</th>
+      <th>Latest NAV</th>
+      <th>Current Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of portfolio">
+      <td>{{ p.scheme.scheme_name }}</td>
+      <td>₹{{ p.amount_invested | number:'1.2-2' }}</td>
+      <td>₹{{ p.nav_at_purchase | number:'1.2-2' }}</td>
+      <td>{{ p.units }}</td>
+      <td>₹{{ p.latest_nav | number:'1.2-2' }}</td>
+      <td>₹{{ p.current_value | number:'1.2-2' }}</td>
+    </tr>
+  </tbody>
+</table>
 
-  .sub-heading {
-    font-size: 22px;
-    margin-top: 30px;
-    color: #34495e;
-  }
+<p *ngIf="portfolio.length === 0" class="no-schemes">No portfolio data available.</p>
 
-  .logout-btn {
-    float: right;
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    margin-bottom: 20px;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-
-  .logout-btn:hover {
-    background-color: #c0392b;
-  }
-
-  .section {
-    margin-bottom: 20px;
-  }
-
-  select,
-  input {
-    padding: 6px;
-    margin: 0 10px 10px 0;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-  }
-
-  .add-btn {
-    background-color: #2ecc71;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .add-btn:hover {
-    background-color: #27ae60;
-  }
-
-  .portfolio-list {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  .portfolio-list li {
-    background: #ecf0f1;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-left: 5px solid #3498db;
-    border-radius: 4px;
-  }
-
-  .no-schemes {
-    color: #e67e22;
-  }
-</style>

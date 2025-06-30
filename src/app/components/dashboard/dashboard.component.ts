@@ -1,14 +1,15 @@
-// src/app/components/dashboard/dashboard.component.ts
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { FundService } from '../../services/fund.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.css'],
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
@@ -18,7 +19,7 @@ export class DashboardComponent implements OnInit {
   portfolio: any[] = [];
   selectedFundHouseId: string = '';
   selectedSchemeId: string = '';
-  units: number = 0;
+  amount: number = 0;
 
   constructor(
     private authService: AuthService,
@@ -34,8 +35,8 @@ export class DashboardComponent implements OnInit {
   loadFundHouses() {
     this.fundService.getFundHouses().subscribe({
       next: (res) => {
-        if (res.status) {
-          this.fundHouses = res.data;
+        if (res.statusCode) {
+          this.fundHouses = res.payLoad;
         } else {
           console.error('Failed to fetch fund houses:', res.message);
         }
@@ -44,35 +45,37 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  onFundHouseChange(event: any) {
-    this.selectedFundHouseId = event.target.value;
-    this.selectedSchemeId = '';
-    this.schemes = [];
 
-    if (this.selectedFundHouseId) {
-      this.fundService.getSchemesByFundHouse(this.selectedFundHouseId).subscribe({
-        next: (data: any[]) => {
-          console.log('Schemes fetched:', data);
-          this.schemes = data;
-        },
-        error: (err) => console.error('Error loading schemes:', err)
-      });
-    }
+  onFundHouseChange(event: any) {
+  this.selectedFundHouseId = event.target.value;
+  this.selectedSchemeId = '';
+  this.schemes = [];
+
+  if (this.selectedFundHouseId) {
+    this.fundService.getSchemesByFundHouse(this.selectedFundHouseId).subscribe({
+      next: (res: any) => {
+        console.log('Schemes fetched:', res);
+        this.schemes = res.payLoad || []; 
+      },
+      error: (err) => console.error('Error loading schemes:', err)
+    });
   }
+}
+
 
   addToPortfolio() {
-    if (this.selectedSchemeId && this.units > 0) {
+    if (this.selectedSchemeId && this.amount > 0) {
       const portfolioItem = {
-        scheme: this.selectedSchemeId,
-        units: this.units
+        scheme_id: +this.selectedSchemeId,
+        amount_invested: this.amount
       };
 
       this.fundService.addToPortfolio(portfolioItem).subscribe({
         next: (res) => {
-          if (res.status) {
-            console.log('Added to portfolio:', res.data);
+          if (res.statusCode === 201) {
+            console.log('Added to portfolio:', res.payLoad);
             this.loadPortfolio();
-            this.units = 0;
+            this.amount = 0;
             this.selectedSchemeId = '';
           } else {
             console.error('Failed to add to portfolio:', res.message);
@@ -86,8 +89,8 @@ export class DashboardComponent implements OnInit {
   loadPortfolio() {
     this.fundService.getPortfolio().subscribe({
       next: (res) => {
-        if (res.status) {
-          this.portfolio = res.data;
+        if (res.statusCode === 200) {
+          this.portfolio = res.payLoad;
         } else {
           console.error('Failed to fetch portfolio:', res.message);
         }
@@ -95,6 +98,50 @@ export class DashboardComponent implements OnInit {
       error: (err) => console.error('Error loading portfolio:', err)
     });
   }
+
+  saveFundHouses() {
+  this.fundService.saveFundHouses().subscribe({
+    next: (res) => {
+      if (res.statusCode === 201) {
+        console.log(res.message);
+        alert(res.message);
+        this.loadFundHouses();  
+      } else {
+        console.error('Failed to save fund houses:', res.message);
+        alert(res.message);
+      }
+    },
+    error: (err: HttpErrorResponse) => {
+  if (err.status === 400) {
+    alert("API quota exceeded. Please try again later.");
+  } else {
+    alert("Error saving fund houses.");
+  }
+}
+  });
+}
+
+saveSchemes() {
+  this.fundService.saveSchemes().subscribe({
+    next: (res) => {
+      if (res.statusCode === 201) {
+        console.log(res.message);
+        alert(res.message);
+      } else {
+        console.error('Failed to save schemes:', res.message);
+        alert(res.message);
+      }
+    },
+    error: (err: HttpErrorResponse) => {
+  if (err.status === 400) {
+    alert("API quota exceeded. Please try again later.");
+  } else {
+    alert("Error saving fund houses.");
+  }
+}
+  });
+}
+
 
   logout() {
     this.authService.logout();

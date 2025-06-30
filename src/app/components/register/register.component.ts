@@ -1,4 +1,3 @@
-// src/app/components/register/register.component.ts
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +7,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
+  styleUrls: ['./register.component.css'],
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
@@ -32,7 +32,7 @@ export class RegisterComponent {
         this.message = 'Registration successful! Redirecting to login...';
         setTimeout(() => {
           this.router.navigate(['/login']);
-        }, 1500); // Delay of 1.5 seconds
+        }, 1500);
       },
       error: () => {
         this.message = 'Registration failed. Please try again.';
